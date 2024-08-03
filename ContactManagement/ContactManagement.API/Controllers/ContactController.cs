@@ -16,8 +16,8 @@ namespace ContactManagement.API.Controllers
             _context = context;
         }
 
-        [HttpGet("Contacts")]
-        public async Task<ActionResult<IEnumerable<Contact>>> Index()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Contact>>> Get()
         {
             return await _context.Contacts.ToListAsync();
         }
@@ -30,6 +30,36 @@ namespace ContactManagement.API.Controllers
             await _context.SaveChangesAsync();
 
             return await _context.Contacts.FindAsync(contact.Id);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete([FromQuery] long id)
+        {
+            var contact = await _context.Contacts.FindAsync(id);
+
+            if (contact == null) return NotFound();
+
+            _context.Contacts.Remove(contact);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update([FromQuery] long id, [FromBody] Contact contact)
+        {
+            if (id != contact.Id) return BadRequest();
+
+            var filteredContact = await _context.Contacts.FindAsync(id);
+
+            if (filteredContact == null) return NotFound();
+
+            _context.Entry(contact).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
