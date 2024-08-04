@@ -1,5 +1,8 @@
 ﻿using ContactManagement.API.AppDbContext;
 using ContactManagement.API.Model;
+using ContactManagement.API.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,9 +20,22 @@ namespace ContactManagement.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Contact>>> Get()
+        public async Task<ActionResult<IEnumerable<Contact>>> GetContacts([FromQuery] SearchParams searchParams)
         {
-            return await _context.Contacts.ToListAsync();
+            IQueryable<Contact> filtered = _context.Contacts;
+
+            if (string.IsNullOrWhiteSpace(searchParams.Search))
+                filtered = filtered
+                    .Take(searchParams.Size)
+                    .Skip(searchParams.Size * searchParams.Page);
+            else
+                filtered = filtered
+                        .Where(x =>
+                            x.FirstName.Contains(searchParams.Search) ||
+                            x.LastName.Contains(searchParams.Search) ||
+                            x.Email.Contains(searchParams.Search));
+
+            return filtered.ToList();
         }
 
         [HttpPost]
