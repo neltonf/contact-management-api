@@ -1,11 +1,7 @@
-﻿using ContactManagement.API.AppDbContext;
-using ContactManagement.API.Model;
+﻿using ContactManagement.API.Model;
 using ContactManagement.API.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http.HttpResults;
+using ContactManagement.API.Services.FileService;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ContactManagement.API.Controllers
 {
@@ -13,18 +9,18 @@ namespace ContactManagement.API.Controllers
     [Route("[controller]")]
     public class ContactController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IFileService _fileService;
 
-        public ContactController(ApplicationDbContext context)
+        public ContactController(IFileService fileService)
         {
-            _context = context;
+            _fileService = fileService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetContacts([FromQuery] SearchParams searchParams)
+        public IActionResult GetContacts([FromQuery] SearchParams searchParams)
         {
-            IQueryable<Contact> filtered = _context.Contacts;
-
+            IEnumerable<Contact> filtered = _fileService.GetContacts();
+            
             if (!string.IsNullOrEmpty(searchParams.Search))
             {
                 filtered = filtered.Where(x =>
@@ -43,41 +39,27 @@ namespace ContactManagement.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Contact>> Post([FromBody] Contact contact)
+        public IActionResult Post([FromBody] Contact contact)
         {
-            _context.Contacts.Add(contact);
+            _fileService.AddContact(contact);
 
-            await _context.SaveChangesAsync();
-
-            return await _context.Contacts.FindAsync(contact.Id);
+            return Ok(_fileService.GetContact(contact.Id));
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromQuery] long id)
+        public IActionResult Delete([FromQuery] long id)
         {
-            var contact = await _context.Contacts.FindAsync(id);
-
-            if (contact == null) return NotFound();
-
-            _context.Contacts.Remove(contact);
-
-            await _context.SaveChangesAsync();
+            _fileService.DeleteContact(id);
 
             return NoContent();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update([FromQuery] long id, [FromBody] Contact contact)
+        public IActionResult Update([FromQuery] long id, [FromBody] Contact contact)
         {
             if (id != contact.Id) return BadRequest();
 
-            var filteredContact = await _context.Contacts.FindAsync(id);
-
-            if (filteredContact == null) return NotFound();
-
-            _context.Entry(contact).State = EntityState.Modified;
-
-            await _context.SaveChangesAsync();
+            _fileService.UpdateContact(contact);
 
             return NoContent();
         }
