@@ -31,4 +31,4 @@ dotnet run
 Clone and Run the [Contact Managment Angular UI](https://github.com/neltonf/contact-management-ui)
 ## Database
 
-A database file is used to store Contact details. (SQLLiteDatabase.db). EntityFramework is used as an ORM to connect to the database. No additional setup of database is required.
+The contact records for this application are stored in a data.json file. This file serves as the primary data source for managing contact details. The data.json file is used to persist contact information in a JSON format. It is created automatically if it does not exist and is updated each time contact details are saved.
