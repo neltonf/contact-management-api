@@ -24,9 +24,9 @@ namespace ContactManagement.API.Controllers
             if (!string.IsNullOrEmpty(searchParams.Search))
             {
                 filtered = filtered.Where(x =>
-                            x.FirstName.Contains(searchParams.Search) ||
-                            x.LastName.Contains(searchParams.Search) ||
-                            x.Email.Contains(searchParams.Search));
+                            x.FirstName.ToLower().Contains(searchParams.Search.ToLower()) ||
+                            x.LastName.ToLower().Contains(searchParams.Search.ToLower()) ||
+                            x.Email.ToLower().Contains(searchParams.Search.ToLower()));
             }
 
             var result = new
